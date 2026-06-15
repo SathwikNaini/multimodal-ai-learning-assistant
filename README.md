@@ -4,7 +4,7 @@ An advanced, production-grade web application that leverages generative AI to tr
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 *   **Multimodal Material Ingestion**:
     *   **PDF Analysis**: Reads academic papers and extracts structured lecture takeaways.
@@ -19,7 +19,7 @@ An advanced, production-grade web application that leverages generative AI to tr
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 The application is structured into three primary architectural layers:
 
@@ -31,7 +31,7 @@ For a deep dive into data ingestion pipelines, diagrams, and AI prompts, read th
 
 ---
 
-## 🛠️ Installation Guide
+## Installation Guide
 
 ### Prerequisites
 *   [Node.js](https://nodejs.org/) (v18+)
@@ -85,7 +85,7 @@ cd ai-notes-summarizer
 
 ---
 
-## 🔒 Environment Variables
+## Environment Variables
 
 ### Backend Configuration (`backend/.env`)
 Create a `.env` file in the `backend/` directory:
@@ -103,7 +103,7 @@ VITE_API_URL=http://localhost:5000
 
 ---
 
-## 📂 Folder Structure
+## Folder Structure
 
 ```
 project/
@@ -128,7 +128,7 @@ project/
 
 ---
 
-## 🔌 API Structure
+## API Structure
 
 The system exposes modular endpoints. The primary endpoint for summarization is:
 
@@ -145,7 +145,7 @@ For example query schemas and response bodies, see the [API Documentation](docs/
 
 ---
 
-## 🚀 Deployment Guide
+## Deployment Guide
 
 We recommend the following deployment platforms:
 *   **Frontend**: Host on [Vercel](https://vercel.com) or [Netlify](https://netlify.com) using the build directory `dist`.
@@ -164,5 +164,5 @@ For comprehensive hosting parameters, CORS configurations, and proxy settings, s
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
