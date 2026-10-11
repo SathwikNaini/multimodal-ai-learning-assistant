@@ -1,0 +1,92 @@
+[
+  {
+    "document": "Machine learning is a branch of artificial intelligence that allows computers to learn patterns from data. In supervised learning, a model learns from labeled examples and maps inputs to target outputs. Linear regression predicts continuous values, while logistic regression predicts binary outcomes. Data preprocessing removes noise, standardizes features, and fills missing values. A well-designed model is evaluated using accuracy, precision, recall, and F1-score on unseen test data.",
+    "reference_summary": "Machine learning learns patterns from data using algorithms and feedback. Supervised learning relies on labeled examples to train models. Linear regression predicts continuous values, while logistic regression predicts categories. Data preprocessing improves model quality by cleaning and standardizing inputs. Accuracy, precision, recall, and F1-score are used to evaluate model performance."
+  },
+  {
+    "document": "Neural networks consist of layers of interconnected units that transform information. Each neuron applies an activation function to weighted inputs. Backpropagation updates the weights by computing gradients of the loss function and adjusting parameters in the direction that reduces error. Deep learning uses many hidden layers to capture complex relationships in data such as images and text. Regularization and dropout reduce overfitting by limiting model complexity and encouraging robust generalization.",
+    "reference_summary": "Neural networks use layers of neurons to transform input data. Each neuron applies an activation function to weighted inputs. Backpropagation adjusts model weights by propagating error gradients. Deep learning uses multiple hidden layers to model complex patterns. Regularization and dropout help prevent overfitting."
+  },
+  {
+    "document": "A decision tree recursively splits data based on feature values. It builds simple rules that are easy to interpret and explain. Random forests combine many decision trees to improve predictive accuracy and reduce variance. Feature importance can indicate which variables contribute most to the model decision. Tree-based models are often used for classification and regression in tabular datasets.",
+    "reference_summary": "Decision trees split data using feature-based rules. Random forests combine many trees to improve accuracy and reduce variance. Feature importance highlights the variables most influential in predictions. Tree-based models are useful for both classification and regression."
+  },
+  {
+    "document": "Support vector machines find a hyperplane that separates classes with the largest margin. The margin represents the distance between the boundary and the nearest training examples. Kernels allow SVMs to handle nonlinear data by projecting inputs into higher-dimensional space. SVMs are effective for small and medium-sized datasets, especially when the feature space is high-dimensional. Cross-validation is often used to select the best kernel and regularization settings.",
+    "reference_summary": "Support vector machines separate classes with a maximum-margin hyperplane. Kernels allow nonlinear decision boundaries. SVMs work well on high-dimensional data and small to medium datasets. Cross-validation is used to tune the kernel and regularization parameters."
+  },
+  {
+    "document": "Naive Bayes classifiers rely on Bayes' theorem and assume conditional independence between features. They are computationally efficient and can perform well on text classification tasks such as spam detection or sentiment analysis. Even though the independence assumption is simplified, the method often works surprisingly well in practice. It is especially useful as a baseline model for understanding data and comparing more complex approaches.",
+    "reference_summary": "Naive Bayes uses Bayes' theorem and assumes feature independence. It is efficient and performs well on text classification tasks. The method often works well even with simplified assumptions. It is a useful baseline model for comparisons."
+  },
+  {
+    "document": "Natural language processing aims to enable computers to understand, interpret, and generate human language. Tokenization breaks text into smaller units such as words or subwords. Stop-word removal reduces common but low-information words, while stemming or lemmatization normalizes word forms. Embeddings represent text as dense vectors that capture semantic similarity. Transformer models use attention mechanisms to model long-range dependencies within sequences.",
+    "reference_summary": "Natural language processing helps computers understand human language. Tokenization, stop-word removal, and normalization process raw text. Embeddings map words into dense vectors. Transformers use attention to model relationships in text."
+  },
+  {
+    "document": "The bias-variance tradeoff is a core concept in machine learning. Bias refers to the error caused by overly simplistic assumptions in the model. Variance reflects how much the model changes when trained on different datasets. High bias leads to underfitting, while high variance leads to overfitting. A balanced model generalizes better to new data and performs well on unseen examples.",
+    "reference_summary": "The bias-variance tradeoff concerns model complexity and generalization. High bias causes underfitting, while high variance causes overfitting. A balanced model performs better on unseen data. Generalization is the key goal in machine learning."
+  },
+  {
+    "document": "A confusion matrix summarizes the prediction outcomes for a classification model. It reports true positives, false positives, true negatives, and false negatives. Precision and recall help interpret the model when classes are imbalanced. Accuracy alone can be misleading if one class appears much more often than the other. Evaluating the confusion matrix helps determine where the model makes mistakes.",
+    "reference_summary": "A confusion matrix summarizes classification results. It shows true positives, false positives, true negatives, and false negatives. Precision and recall are important when classes are imbalanced. Accuracy alone may hide model weakness."
+  },
+  {
+    "document": "Clustering groups similar instances without labeled data. K-means is one of the simplest and fastest clustering algorithms. It initializes centroids and iteratively assigns points to the nearest center. The algorithm continues until the cluster assignments stop changing significantly. Clustering is used in market segmentation, image compression, and anomaly detection.",
+    "reference_summary": "Clustering groups similar data without labels. K-means is a common clustering algorithm. It assigns points to nearby centroids and updates them iteratively. Clustering is used in segmentation, compression, and anomaly detection."
+  },
+  {
+    "document": "The lecture introduced hypothesis testing as a method for making statistical decisions. A null hypothesis states that no effect or difference exists, while an alternative hypothesis states otherwise. Researchers choose a significance level to control the probability of a false positive. P-values help measure evidence against the null hypothesis, though they should be interpreted carefully. Confidence intervals are often reported alongside tests to describe uncertainty.",
+    "reference_summary": "Hypothesis testing helps make statistical decisions. The null hypothesis assumes no effect, while the alternative hypothesis suggests a difference. Significance levels control false positives. Confidence intervals and p-values describe evidence and uncertainty."
+  },
+  {
+    "document": "Feature engineering transforms raw data into variables that are more informative for a model. Examples include creating interaction terms, encoding categories, and handling missing values. Good features improve the learning process and often produce simpler and more accurate models. Feature selection further removes redundant variables that do not contribute much to prediction. This step often has a bigger impact than changing the model class itself.",
+    "reference_summary": "Feature engineering transforms raw data into useful model inputs. It includes creating interactions, encoding categories, and handling missing values. Good features improve model performance and simplification. Feature selection removes redundant variables that contribute little."
+  },
+  {
+    "document": "A transformer model uses self-attention to weigh the relevance of each token in a sequence. This allows the model to capture long-range dependencies without relying on recurrence. BERT and GPT are examples of widely used transformer architectures. These models are pre-trained on large corpora and then fine-tuned on task-specific data. Transformer-based language models have become central to modern NLP systems.",
+    "reference_summary": "Transformers use self-attention to weigh token relevance in sequence data. This captures long-range dependencies without recurrence. Models such as BERT and GPT use transformer architectures. They are pre-trained on large datasets and fine-tuned for specific tasks."
+  },
+  {
+    "document": "Gradient descent is the optimization algorithm used to minimize the loss function of many machine learning models. It updates parameters by moving in the direction of the negative gradient. The learning rate controls how large each update is. If the learning rate is too high, optimization can overshoot; if it is too low, learning may be slow. Adaptive methods such as Adam improve convergence in practice."
+    ,
+    "reference_summary": "Gradient descent minimizes a model's loss function by updating parameters along the negative gradient. The learning rate controls update size. Too large a rate causes overshooting, while too small a rate slows learning. Adaptive optimizers like Adam improve convergence."
+  },
+  {
+    "document": "The lecture examined the difference between correlation and causation. Correlation describes a statistical relationship between two variables, but does not imply one caused the other. Causation requires stronger evidence and often relies on randomized experiments or domain knowledge. Misinterpreting correlation as causation can lead to incorrect conclusions. Statistical reasoning should distinguish between association and causal influence.",
+    "reference_summary": "Correlation indicates a relationship between variables but not necessarily causation. Causation requires stronger evidence and often randomized experiments. Confusing correlation with causation leads to misleading conclusions. Statistical reasoning must separate association from causal effects."
+  },
+  {
+    "document": "The performance of a model can be measured using several metrics depending on the task. For classification, accuracy, precision, recall, and F1-score are standard. For regression, RMSE and MAE are common choices. The right metric depends on whether the task values large errors or balanced performance across classes. A good evaluation protocol chooses metrics that match the real-world objective.",
+    "reference_summary": "Classification models are evaluated with accuracy, precision, recall, and F1-score. Regression models usually use RMSE or MAE. Metric choice depends on the learning objective and error sensitivity. A strong evaluation protocol aligns metrics with the task."
+  },
+  {
+    "document": "A probability distribution describes how likely different outcomes are in a random variable. The normal distribution is bell-shaped and often used in statistics and machine learning. Mean and variance summarize the center and spread of a distribution. Inference problems often rely on distributional assumptions to estimate parameters and quantify uncertainty. Understanding distributions is essential for statistical modeling.",
+    "reference_summary": "Probability distributions describe the likelihood of different outcomes. The normal distribution is common in statistical modeling. Mean and variance summarize center and spread. Distributional assumptions are central to parameter estimation and uncertainty quantification."
+  },
+  {
+    "document": "The course compared supervised, unsupervised, and reinforcement learning. Supervised learning uses labeled data to learn mappings from inputs to targets. Unsupervised learning discovers structure in unlabeled data. Reinforcement learning learns by receiving rewards or penalties while interacting with an environment. Each paradigm addresses a different kind of problem and requires different data and objectives.",
+    "reference_summary": "Supervised learning uses labeled data, unsupervised learning finds structure in unlabeled data, and reinforcement learning learns through reward signals. Each paradigm suits different problem settings and data types."
+  },
+  {
+    "document": "A lecture summary should keep only the most essential points and omit minor details. Students often need a condensed version to study efficiently before an exam. The best summaries highlight definitions, key examples, and central arguments. They should be clear, concise, and connected to the main theme of the lesson. A summary is most useful when it reduces complexity without losing meaning.",
+    "reference_summary": "A good lecture summary keeps only the most essential ideas and omits minor details. It should highlight definitions, examples, and main arguments. A concise summary helps students study efficiently and preserves the lesson's meaning."
+  },
+  {
+    "document": "Cross-validation is used to estimate how well a model will generalize to unseen data. K-fold cross-validation splits the data into multiple subsets and trains on different combinations of folds. This reduces the risk of selecting a model that performs well only on one sample of data. The process also helps compare alternative algorithms fairly using the same evaluation protocol."
+    ,
+    "reference_summary": "Cross-validation estimates generalization performance by training and validating on multiple data splits. K-fold cross-validation reduces overfitting to one sample of data and helps compare models fairly."
+  },
+  {
+    "document": "The dataset had multiple missing values, so the team used imputation before training. This preserved information without discarding incomplete records. Categorical variables were encoded with one-hot vectors so they could be processed by the model. Scaling numeric features reduced the impact of variable magnitude on optimization. These preprocessing steps improved both training stability and final performance.",
+    "reference_summary": "Missing data were handled with imputation before training. Categorical variables were encoded so they could be used in models. Scaling numeric features improved optimization stability. Preprocessing steps increased training stability and model performance."
+  },
+  {
+    "document": "The instructor explained that evaluation should be realistic and task-specific. A model can score well on one metric but poorly on another, so metrics must reflect the project goal. For example, a medical classifier may require high recall to identify all positive cases. In contrast, a marketing model might prioritize precision to reduce false alarms. The chosen metric should match the real business risk.",
+    "reference_summary": "Evaluation should be realistic and task-specific. Models can perform differently across metrics, so metric choice must reflect the project goal. High recall may be essential in medical diagnosis, whereas high precision may matter more in marketing."
+  },
+  {
+    "document": "A language model processes text as a sequence and learns patterns of word usage from large corpora. It can generate fluent text, answer questions, and summarize documents. However, the model may still produce incorrect or unsupported statements, so human review remains important. Prompt design and context selection strongly affect the quality of the generated response. Responsible use requires checking factual accuracy and relevance.",
+    "reference_summary": "Language models learn word patterns from large corpora and can generate fluent text, answer questions, and summarize documents. They can still produce unsupported statements, so human review remains important. Prompt design and context strongly influence output quality."
+  }
+]

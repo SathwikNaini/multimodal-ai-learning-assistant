@@ -8,7 +8,14 @@ from backend.services.file_service import extract_text_from_file
 from backend.services.youtube_service import get_video_transcript, search_video_by_query
 from backend.services.gemini_service import generate_summary
 from backend.utils.exceptions import APIError
-from backend.utils.helpers import create_success_response, create_error_response, parse_youtube_id
+from backend.utils.helpers import (
+    create_success_response,
+    create_error_response,
+    parse_youtube_id,
+    validate_content_for_analysis,
+    validate_meaningful_content,
+    INVALID_CONTENT_MESSAGE,
+)
 from backend.config.settings import settings
 
 summarize_router = Blueprint('summarize', __name__)
@@ -17,11 +24,6 @@ summarize_router = Blueprint('summarize', __name__)
 @summarize_router.route('/api/summarize', methods=['POST'])
 def summarize_content():
     logging.info("[Route] POST /api/summarize request received.")
-    
-    # Check API key configuration status
-    if not settings.GEMINI_API_KEY:
-        logging.error("[Route] Request failed: GEMINI_API_KEY is not configured.")
-        return create_error_response('Gemini API key not configured on the server', status_code=500)
 
     text_input = request.form.get('text', '').strip()
     youtube_url = request.form.get('youtube_url', '').strip()
@@ -33,21 +35,36 @@ def summarize_content():
         logging.info(f"[Route] File Details - Filename: '{file.filename}', ContentType: '{file.content_type}'")
 
     if not any([text_input, youtube_url, file]):
-        logging.warning("[Route] Request validation failed: No input provided.")
-        return create_error_response('Please provide text, file, or YouTube URL.', status_code=400)
+        logging.warning("[Route] Request validation failed: No meaningful input provided.")
+        raise APIError(INVALID_CONTENT_MESSAGE, status_code=400)
 
     try:
         if text_input:
             logging.info("[Route] Processing mode: Raw Text Input")
             input_content = text_input
+            print("[VALIDATION] Content length:", len(input_content))
+            is_valid, validation_error = validate_meaningful_content(input_content)
+            print("[VALIDATION] Valid:", is_valid)
+            if not is_valid:
+                return create_error_response(validation_error, status_code=400)
         elif youtube_url:
+            video_id = parse_youtube_id(youtube_url)
+            if not video_id:
+                raise APIError('Invalid YouTube URL format', status_code=400)
             logging.info(f"[Route] Processing mode: YouTube Transcript Extraction ({youtube_url})")
+            metadata_fallback_used = False
             try:
+                logging.info("[YOUTUBE] URL: %s", youtube_url)
+                logging.info("[YOUTUBE] Video ID: %s", video_id)
                 input_content = get_video_transcript(youtube_url)
+                logging.info("[YOUTUBE] Transcript available: true")
                 logging.info(f"[Route] Successfully fetched YouTube transcript ({len(input_content)} chars)")
             except Exception as yt_exc:
+                metadata_fallback_used = True
+                logging.warning("[YOUTUBE] Transcript extraction failed: %s", str(yt_exc))
                 logging.warning(f"[Route] [Transcript] Transcript extraction failed ({str(yt_exc)}). Attempting metadata fallback...")
-                
+                logging.info("[YOUTUBE] Metadata fallback used: true")
+
                 title = "Unknown Title"
                 channel = "Unknown Channel"
                 description = "No description available"
@@ -126,13 +143,36 @@ def summarize_content():
             input_content = extracted
             logging.info(f"[Route] Successfully extracted document content ({len(input_content)} chars)")
 
+        logging.info("[Route] Validating extracted content before Gemini analysis...")
+        print("[VALIDATION] Content length:", len(input_content))
+        is_valid, validation_error = validate_meaningful_content(input_content)
+        print("[VALIDATION] Valid:", is_valid)
+        if not is_valid:
+            return create_error_response(validation_error, status_code=400)
+
+        if not settings.GEMINI_API_KEY:
+            logging.error("[Route] Request failed: GEMINI_API_KEY is not configured.")
+            return create_error_response('Gemini API key not configured on the server', status_code=500)
+
+        source_label = 'youtube' if youtube_url else 'text'
+        logging.info("[GEMINI] Input source: %s", source_label)
+        logging.info("[GEMINI] Content length: %s", len(input_content))
+        logging.info("[GEMINI] Content preview: %s", input_content[:400])
+        print("[GEMINI] Calling Gemini analysis")
         logging.info("[Route] Invoking Gemini summarization service...")
-        summary_payload = generate_summary(input_content)
+        summary_payload = generate_summary(input_content, source_type='youtube_metadata' if youtube_url and metadata_fallback_used else 'youtube' if youtube_url else 'text')
 
         logging.info("[Route] Validating Gemini summary payload schema...")
         if not isinstance(summary_payload, dict):
             logging.error(f"[Route] Invalid payload type: {type(summary_payload)}. Payload: {summary_payload}")
             raise APIError('AI response format is invalid (not a JSON object)', status_code=502)
+        if not isinstance(summary_payload.get('summary', []), list) or not summary_payload.get('summary'):
+            logging.error("[Route] Gemini returned an empty summary payload: %s", summary_payload)
+            raise APIError('No summary points were returned by the AI.', status_code=502)
+
+        logging.info("[Route] Gemini normalized payload keys: %s", sorted(summary_payload.keys()))
+        logging.info("[API] YouTube normalized summary length: %s", len(summary_payload.get('summary', [])))
+        logging.info("[API] YouTube normalized summary: %s", summary_payload.get('summary', []))
 
         learning_gaps = summary_payload.get('learning_gaps', [])
         logging.info(f"[Route] Processing {len(learning_gaps) if isinstance(learning_gaps, list) else 0} learning gaps...")
@@ -150,6 +190,7 @@ def summarize_content():
 
                 query = gap.get('youtube_query')
                 if query:
+                    print("[YOUTUBE] Starting learning-path search")
                     logging.info(f"[Route] Searching YouTube matching video for query {i+1}: '{query}'")
                     try:
                         gap['video'] = search_video_by_query(query)

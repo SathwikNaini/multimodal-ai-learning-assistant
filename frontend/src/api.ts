@@ -52,10 +52,8 @@ export const analyzeContent = async (text: string, file: File | null, youtubeUrl
         formData.append('youtube_url', youtubeUrl);
     } else if (file) {
         formData.append('file', file);
-    } else if (text) {
-        formData.append('text', text);
     } else {
-        throw new Error("Please provide text, a file, or a YouTube URL.");
+        formData.append('text', text || '');
     }
 
     const response = await fetch(`${API_BASE_URL}/api/summarize`, {
@@ -69,5 +67,6 @@ export const analyzeContent = async (text: string, file: File | null, youtubeUrl
         throw new Error(data.error || data.details || 'Failed to analyze content');
     }
 
+    console.log('Normalized analysis response:', data);
     return data.data;
 };

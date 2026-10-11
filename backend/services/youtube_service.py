@@ -60,12 +60,15 @@ def patch_session_timeout(timeout=10.0):
 
 def get_video_transcript(youtube_url: str) -> str:
     video_id = parse_youtube_id(youtube_url)
+    logging.info("[YOUTUBE] URL: %s", youtube_url)
+    logging.info("[YOUTUBE] Video ID: %s", video_id)
+
     if not video_id:
-        logging.error(f"[YouTube] [Transcript] Invalid URL: {youtube_url}")
+        logging.error("[YOUTUBE] Invalid URL: %s", youtube_url)
         raise APIError('Invalid YouTube URL format', status_code=400)
 
-    logging.info(f"[YouTube] [Transcript] Extracting transcript. Video ID: {video_id}, URL: {youtube_url}")
-    
+    logging.info("[YOUTUBE] Transcript extraction started for video ID: %s", video_id)
+
     try:
         with patch_session_timeout(10.0):
             transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
@@ -140,12 +143,12 @@ def get_video_transcript(youtube_url: str) -> str:
                 pass
 
         if not transcript:
-            logging.error(f"[YouTube] [Transcript] No captions could be resolved for video {video_id}")
+            logging.error("[YOUTUBE] No captions could be resolved for video %s", video_id)
             raise APIError("No captions available", status_code=400)
 
-        logging.info(f"[YouTube] [Transcript] Selected method: {selected_method}")
-        
-        # Fetch content with retries
+        logging.info("[YOUTUBE] Transcript available: true")
+        logging.info("[YOUTUBE] Selected transcript method: %s", selected_method)
+
         retries = 3
         text = None
         for attempt in range(retries):
@@ -154,38 +157,41 @@ def get_video_transcript(youtube_url: str) -> str:
                     text = ' '.join(item['text'] for item in transcript.fetch())
                 break
             except Exception as e:
-                logging.warning(f"[YouTube] [Transcript] Fetch attempt {attempt+1} failed: {str(e)}")
+                logging.warning("[YOUTUBE] Transcript fetch attempt %s failed: %s", attempt + 1, str(e))
                 if attempt == retries - 1:
                     raise e
                 time.sleep(0.5)
 
         if not text:
-            logging.error(f"[YouTube] [Transcript] Resolved transcript has empty payload for video {video_id}")
+            logging.error("[YOUTUBE] Resolved transcript has empty payload for video %s", video_id)
             raise APIError('No captions available', status_code=400)
 
-        logging.info(f"[YouTube] [Transcript] Successfully retrieved transcript length: {len(text)} characters (Video: {video_id})")
-        return text
+        cleaned_text = ' '.join(text.split())
+        logging.info("[YOUTUBE] Transcript length: %s", len(cleaned_text))
+        logging.info("[YOUTUBE] Final content length: %s", len(cleaned_text))
+        logging.info("[YOUTUBE] Final content preview: %s", cleaned_text[:300])
+        return cleaned_text
 
     except TranscriptsDisabled as e:
-        logging.warning(f"[YouTube] [Transcript] Transcripts disabled for video {video_id}. Exception: {str(e)}")
+        logging.warning("[YOUTUBE] Transcript extraction failed: %s", str(e))
         raise APIError("Transcript disabled by creator", status_code=400)
     except NoTranscriptFound as e:
-        logging.warning(f"[YouTube] [Transcript] No transcript found for video {video_id}. Exception: {str(e)}")
+        logging.warning("[YOUTUBE] Transcript extraction failed: %s", str(e))
         raise APIError("No captions available", status_code=400)
     except VideoUnavailable as e:
-        logging.warning(f"[YouTube] [Transcript] Video unavailable {video_id}. Exception: {str(e)}")
+        logging.warning("[YOUTUBE] Transcript extraction failed: %s", str(e))
         raise APIError("Video unavailable", status_code=400)
     except TooManyRequests as e:
-        logging.error(f"[YouTube] [Transcript] YouTube rate limited request {video_id}. Exception: {str(e)}")
+        logging.error("[YOUTUBE] Transcript extraction failed: %s", str(e))
         raise APIError("YouTube rate limited request", status_code=429)
     except APIError:
         raise
     except Exception as exc:
         exc_str = str(exc).strip()
         if "429" in exc_str or "too many requests" in exc_str.lower():
-            logging.error(f"[YouTube] [Transcript] YouTube rate limited request {video_id} (inferred). Exception: {exc_str}")
+            logging.error("[YOUTUBE] Transcript extraction failed: %s", exc_str)
             raise APIError("YouTube rate limited request", status_code=429)
-        logging.error(f"[YouTube] [Transcript] Unexpected error extracting transcript for video {video_id}. Exception: {exc_str}", exc_info=True)
+        logging.error("[YOUTUBE] Transcript extraction failed: %s", exc_str, exc_info=True)
         raise APIError(f"Unable to retrieve YouTube transcript: {exc_str}", status_code=500)
 
 

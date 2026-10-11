@@ -29,6 +29,7 @@ load_dotenv()
 
 class Settings:
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    GEMINI_MODEL = (os.getenv('GEMINI_MODEL') or 'gemini-3.6-flash').strip() or 'gemini-3.6-flash'
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024
     ALLOWED_FILE_EXTENSIONS = {'.pdf', '.pptx', '.txt', '.png', '.jpg', '.jpeg', '.webp'}
     CORS_ORIGINS = [
@@ -49,4 +50,6 @@ if settings.GEMINI_API_KEY:
     logging.info(f"[Settings] GEMINI_API_KEY is configured (Preview: {key_preview}, Length: {len(settings.GEMINI_API_KEY)})")
 else:
     logging.warning("[Settings] GEMINI_API_KEY is NOT configured in the environment variables!")
+
+logging.info("[Settings] GEMINI_MODEL is configured as: %s", settings.GEMINI_MODEL)
 

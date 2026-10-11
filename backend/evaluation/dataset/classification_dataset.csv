@@ -1,0 +1,179 @@
+sentence,actual_label
+"Machine learning enables computers to learn patterns from data.",1
+"Supervised learning uses labeled training data to train a model.",1
+"Linear regression is used to predict continuous values.",1
+"Neural networks are inspired by the structure of biological brains.",1
+"A decision tree splits data into branches based on feature values.",1
+"The model learns from examples and improves with feedback.",1
+"Data preprocessing removes noise and improves model quality.",1
+"Feature selection helps identify the most useful variables for prediction.",1
+"The training set is used to fit the model parameters.",1
+"The validation set helps tune hyperparameters before deployment.",1
+"Gradient descent minimizes the loss function iteratively.",1
+"A confusion matrix compares predicted outcomes with actual outcomes.",1
+"Precision measures how many predicted positives are truly positive.",1
+"Recall measures how many true positives were correctly identified.",1
+"F1-score balances precision and recall into one metric.",1
+"Classification problems predict discrete categories.",1
+"Regression problems predict continuous numerical values.",1
+"The bias-variance tradeoff influences model generalization.",1
+"Overfitting occurs when a model memorizes the training data.",1
+"Underfitting occurs when a model fails to capture the pattern in data.",1
+"Cross-validation reduces the risk of reporting a biased evaluation.",1
+"Logistic regression is commonly used for binary classification.",1
+"A support vector machine separates classes with a decision boundary.",1
+"Text preprocessing includes tokenization, normalization, and stop-word removal.",1
+"A transformer architecture uses attention to capture relationships in sequences.",1
+"Natural language processing helps computers understand human language.",1
+"A lecture summary should highlight the most important concepts.",1
+"The objective function guides learning by measuring prediction error.",1
+"The activation function introduces non-linearity into a neural network.",1
+"Backpropagation updates weights by propagating error gradients.",1
+"Words with high frequency are not always the most important concepts.",1
+"Key ideas in a lecture often repeat across examples and explanations.",1
+"Students should review definitions, formulas, and main assumptions.",1
+"The central idea of a lesson is often stated in the introduction.",1
+"A strong explanation links theory with practical examples.",1
+"The lecture discussed how probability distributions describe uncertainty.",1
+"Reinforcement learning uses rewards to guide agent behavior.",1
+"Unsupervised learning finds structure in unlabeled data.",1
+"Clustering groups similar observations without predefined labels.",1
+"A hidden layer transforms input features into richer representations.",1
+"The dataset contains multiple features that influence the target variable.",1
+"A model checkpoint stores weights at a useful training stage.",1
+"The learning rate controls how quickly the model adjusts.",1
+"Regularization penalizes large coefficients to reduce overfitting.",1
+"An embedding converts symbolic data into dense numerical vectors.",1
+"Attention allows the model to focus on relevant parts of input.",1
+"A lecture note should identify the main takeaway of each section.",1
+"The teacher emphasized the difference between correlation and causation.",1
+"A confidence interval estimates a range for an unknown parameter.",1
+"A hypothesis test checks whether an observed result is statistically meaningful.",1
+"Machine learning models can be evaluated with accuracy, precision, and recall.",1
+"The experiment compared several algorithms on the same dataset.",1
+"A dataset is split into training, validation, and test subsets.",1
+"The test set is used only after model choices are finalized.",1
+"The objective is to minimize prediction error on unseen data.",1
+"A loss function quantifies how far predictions are from targets.",1
+"Deep learning often requires large amounts of labeled data.",1
+"Model evaluation should reflect the actual task and dataset distribution.",1
+"A good summary captures the main argument and supporting evidence.",1
+"The importance of a sentence depends on whether it carries core knowledge.",1
+"The instructor explained how to interpret a scatter plot.",1
+"This chapter covers Bayesian inference and probabilistic reasoning.",1
+"A confusion matrix can reveal whether the model confuses classes.",1
+"Chunking the lecture into sections makes the content easier to understand.",1
+"The notes define key terms at the beginning of each module.",1
+"The final exam includes questions about models, metrics, and evaluation.",1
+"We should compare different models using the same validation setup.",1
+"The presence of outliers can distort the mean and reduce model quality.",1
+"A disciplined workflow improves both model reliability and interpretability.",1
+"Good morning everyone.",0
+"Let's take a short break before continuing.",0
+"Please open your notebooks to the next chapter.",0
+"I will share the assignment instructions after class.",0
+"Can you pass me the lecture slides?
+",0
+"We will review this topic again next week.",0
+"Please remember to submit your homework on time.",0
+"The room is a little warm today.",0
+"Thank you for your attention.",0
+"Let us start with a quick recap.",0
+"I need to check the attendance list.",0
+"The projector is not working right now.",0
+"Can everyone hear me clearly?
+",0
+"I will take questions at the end of the session.",0
+"Please keep your microphones muted unless speaking.",0
+"We have a quiz next Friday.",0
+"The weather looks nice outside today.",0
+"Please save your notes before closing the document.",0
+"I am going to collect the worksheets in ten minutes.",0
+"Let us pause for a moment and stretch.",0
+"Your homework is due before midnight tomorrow.",0
+"Please write your name on the top of the page.",0
+"I forgot to bring the printed handout.",0
+"The classroom lights are a bit dim.",0
+"We should check the schedule for the next lecture.",0
+"Please review the example problem before starting.",0
+"I will post the recording after the session ends.",0
+"The discussion board is updated every Friday.",0
+"Can someone help me with the remote control?
+",0
+"That example is similar to the one from last week.",0
+"Please be ready to present your group project.",0
+"I appreciate everyone working together today.",0
+"We need to finish this activity before lunch.",0
+"The meeting room is on the second floor.",0
+"Please login to the learning platform before class starts.",0
+"I have to leave early for an appointment.",0
+"The assignment rubric is posted online.",0
+"We will continue this discussion in the next lesson.",0
+"Let me double-check the final answer.",0
+"Please read the instructions carefully before answering.",0
+"I will share the answer key after the quiz.",0
+"We should keep our notes organized by topic.",0
+"There are no additional questions for today.",0
+"The whiteboard marker needs replacement.",0
+"I am going to open the lab notebook now.",0
+"This concept is covered in chapter five.",0
+"Please make sure your browser is updated.",0
+"The coffee machine is down again today.",0
+"I will send the summary by email after class.",0
+"The deadline for the draft was extended.",0
+"Let us move to the next example.",0
+"I need to confirm the camera settings.",0
+"Please stay seated until the end of the lecture.",0
+"The office hours schedule has changed this week.",0
+"Could you repeat the last instruction, please?
+",0
+"We will discuss the lab report next session.",0
+"Please make a copy of the worksheet for your partner.",0
+"The library is closed this afternoon.",0
+"I am collecting the exit tickets before you leave.",0
+"We should review the vocabulary list once more.",0
+"Please stay focused for the final five minutes.",0
+"The cafeteria menu includes vegetarian options today.",0
+"Can someone open the window for ventilation?
+",0
+"The assignment template is available on the portal.",0
+"I will check the attendance one more time.",0
+"Please return the lab equipment to the shelf.",0
+"We will break after this section finishes.",0
+"The lecture slides are available in the course folder.",0
+"This topic will be covered in the final exam review.",0
+"Please sign in before entering the lab.",0
+"I have to reset the classroom computers.",0
+"We have ten minutes before the discussion wraps up.",0
+"The class will resume after the coffee break.",0
+"Please note the deadline in your planner.",0
+"The last slide contains a summary of the assignment.",0
+"I will check the group submissions after lunch.",0
+"Let's continue with the next exercise.",0
+"The assistant is here to help with technical issues.",0
+"I am uploading the updated reading list now.",0
+"Please review the diagram and answer the questions.",0
+"The classroom is on the second floor opposite the lab.",0
+"I will bring the handouts to class tomorrow.",0
+"Please keep your phones on silent mode.",0
+"The posting board has the latest announcements.",0
+"We can review this again during office hours.",0
+"I appreciate everyone's participation today.",0
+"The next assignment will be introduced in a week.",0
+"Please ensure your files are saved before leaving.",0
+"I will ask for volunteers to present the project.",0
+"This is the last slide before the wrap-up.",0
+"The key point is to read the instructions before submitting.",0
+"Let us close the topic and move to the next one.",0
+"Please bring a calculator to the next lab session.",0
+"The notes from yesterday are available on the dashboard.",0
+"I will open the backup copy of the document.",0
+"The tutorial room is located behind the main office.",0
+"Please keep your notebooks on the desk.",0
+"The class ends in fifteen minutes.",0
+"I will review this concept again in the next lesson.",0
+"The next topic is about statistical inference.",0
+"Please follow the lab safety guidelines.",0
+"The lecture recording is available after the class.",0
+"Thank you for joining today.",0
+"I will check your progress at the end of the week.",0

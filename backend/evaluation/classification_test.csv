@@ -1,0 +1,220 @@
+sentence,actual_label
+Supervised learning uses labeled training data.,1
+Linear regression predicts continuous numerical values.,1
+Neural networks consist of interconnected computational units.,1
+A decision tree splits data according to feature thresholds.,1
+The validation set is used to tune hyperparameters before deployment.,1
+Gradient descent minimizes the loss function by updating model weights.,1
+A confusion matrix compares predicted labels with actual outcomes.,1
+Precision measures how many predicted positives are truly relevant.,1
+Recall measures how many relevant examples were successfully detected.,1
+The bias-variance tradeoff determines how well a model generalizes.,1
+Regularization reduces overfitting by penalizing overly large coefficients.,1
+Cross-validation helps estimate how a model performs on unseen data.,1
+A support vector machine separates classes with a maximum-margin boundary.,1
+Logistic regression is commonly used for binary classification problems.,1
+The activation function introduces non-linearity into a neural network.,1
+Backpropagation updates weights by propagating error gradients backward.,1
+An embedding converts symbolic data into dense numerical vectors.,1
+Feature selection identifies the variables that matter most for prediction.,1
+The loss function quantifies how far predictions are from the true targets.,1
+The learning rate controls how quickly the model updates its parameters.,1
+Unsupervised learning finds patterns in unlabeled data without target labels.,1
+Clustering groups similar observations based on their feature similarity.,1
+A hidden layer transforms inputs into richer representations for the next stage.,1
+A lecture summary should highlight the main ideas and supporting evidence.,1
+The instructor emphasized the difference between correlation and causation.,1
+Probability distributions model uncertainty in statistical learning tasks.,1
+The objective function guides the learning process toward better predictions.,1
+An outlier can distort the mean and degrade model performance.,1
+"The training set is used to fit model parameters, while the test set measures final performance.",1
+A model checkpoint stores the weights at a useful training stage.,1
+Deep learning models often require large amounts of labeled data.,1
+Natural language processing allows computers to understand and generate human language.,1
+A transformer architecture uses attention to capture long-range dependencies.,1
+The central idea of a lesson is usually stated early and then supported with examples.,1
+"Students should review definitions, formulas, and the main assumptions behind each method.",1
+A strong explanation links theory with practical examples from the problem domain.,1
+The dataset contains multiple features that influence the target variable.,1
+A model with high recall is often preferred when missing a positive case is costly.,1
+The test set should only be used after the model and hyperparameters are finalized.,1
+Attention lets a model focus on the most relevant input tokens for a prediction.,1
+The objective is to minimize prediction error on unseen examples.,1
+Model evaluation should reflect the real task and data distribution.,1
+"The final exam includes questions about models, metrics, and evaluation procedures.",1
+A good summary captures the main argument and the key supporting evidence.,1
+The importance of a sentence depends on whether it carries core knowledge.,1
+The teacher explained how to interpret a scatter plot and identify outliers.,1
+A decision boundary separates different classes in a classification task.,1
+The F1-score balances precision and recall when the class distribution is uneven.,1
+Reinforcement learning uses rewards to guide an agent toward better actions.,1
+This chapter explains how Bayesian inference updates beliefs with new evidence.,1
+Feature engineering creates informative signals that improve model quality.,1
+A probabilistic model estimates the likelihood of each possible outcome.,1
+The model learns patterns from examples and improves with iterative feedback.,1
+A baseline model provides a simple comparison for more complex approaches.,1
+The confusion matrix reveals whether the model confuses positive and negative cases.,1
+Chunking the lecture into sections makes the content easier to follow.,1
+The notes define the key terms at the beginning of each module.,1
+"The dataset is split into training, validation, and test subsets for fair evaluation.",1
+A good classifier should perform well on both common and rare classes.,1
+The instructor compared several algorithms using the same validation setup.,1
+The score of a model is only meaningful when interpreted in the right context.,1
+A sentence is important when it states the central concept or a critical example.,1
+The setup of the experiment directly affects how reliable the final conclusions are.,1
+A curated dataset should include edge cases that reflect real-world variation.,1
+"The function of each layer is different, but all layers contribute to the final prediction.",1
+"The model should be judged on unseen data, not only on the training examples.",1
+A high-quality summary preserves the essential content while omitting minor details.,1
+The teacher stressed that evaluation metrics must match the project objective.,1
+The main takeaway of the lesson was that careful evaluation is as important as model design.,1
+Understanding the assumptions behind a model helps explain both its strengths and limitations.,1
+The algorithm uses training examples to estimate parameters and reduce prediction error.,1
+A logistic model outputs probabilities that can be converted into class predictions.,1
+The class imbalance in a dataset may require special evaluation strategies.,1
+The system stores past observations so the model can learn patterns over time.,1
+"A precise and informative sentence often contains the key concept, evidence, or method.",1
+The hidden representation often captures abstract features that are not obvious in raw data.,1
+This section explains how the model distinguishes classes by using learned decision boundaries.,1
+The statistical assumptions behind a method determine when it will work well.,1
+A robust model should still perform reasonably well when the data distribution shifts.,1
+The teacher highlighted that evaluation should be realistic and task-specific.,1
+The algorithm updates its weights until the objective function is reduced acceptably.,1
+A clear explanation of the problem is often more important than a complicated solution.,1
+Students should focus on the definitions and methods that will be used in future assignments.,1
+The lecture introduced the idea that good models balance flexibility and generalization.,1
+The main concept in this lesson is that learning depends on both data quality and model assumptions.,1
+"In classification, each example belongs to one of several discrete categories.",1
+A sentence that explains the core method or major result is usually important.,1
+The objective was to compare multiple models using a common evaluation protocol.,1
+The discussion focused on how different algorithms respond to noisy or incomplete data.,1
+The model should capture the structure of the data without overfitting to incidental noise.,1
+A well-written summary conveys the key ideas while remaining concise and readable.,1
+The notes explain why some metrics are more informative than accuracy in imbalanced settings.,1
+The purpose of validation is to select the best model configuration before final evaluation.,1
+This lesson covered both the theory and the practical interpretation of performance metrics.,1
+"An important sentence usually states a central rule, method, or result that supports the main argument.",1
+The chapter discussed the effect of regularization on model stability and generalization.,1
+The model performance report showed that the method was effective on the test data.,1
+The final takeaway was that careful feature selection and evaluation are essential for success.,1
+Good morning everyone.,0
+Please open your notebooks to the next section.,0
+Let us take a short break before continuing.,0
+Can everyone hear me clearly?,0
+I will share the assignment instructions after class.,0
+Please remember to submit your homework on time.,0
+The room is a little warm today.,0
+Thank you for your attention this morning.,0
+We will finish this topic next week.,0
+Can someone pass me the lecture slides?,0
+The windows are open and the room feels breezy.,0
+Please keep your phones on silent during class.,0
+I will be available after the meeting for questions.,0
+Let us review the examples from the last lesson.,0
+It was nice to see everyone participating today.,0
+Please write your name on the top of the page.,0
+We can continue after a quick discussion.,0
+I appreciate the effort you have put into this assignment.,0
+Could you repeat that last sentence?,0
+The coffee is still warm on the table.,0
+Please sit with your assigned partner.,0
+I hope everyone is comfortable with the material so far.,0
+The project deadline is coming up soon.,0
+Let us start with a brief recap of the previous discussion.,0
+This chapter is a little longer than the others.,0
+The students were asked to review the reading before class.,0
+I will email the additional notes after the lecture.,0
+Please follow the instructions on the handout.,0
+The syllabus has been updated for this week.,0
+I am going to collect the worksheets in a moment.,0
+Can you hear the audio clearly from the back?,0
+This presentation is a bit longer than expected.,0
+I appreciate everyone coming to class on time.,0
+Please take a look at the second example on the board.,0
+We should start the next activity in a few minutes.,0
+The lab is open after lunch for those who need help.,0
+Please make sure your laptop is charged before the lab begins.,0
+The weather looks much better this afternoon.,0
+I will post the solution key after the review session.,0
+It may be helpful to check the instructions once more.,0
+Let us keep moving so we finish the activity on schedule.,0
+Can you pass the marker to the front?,0
+I saw the reminder on the course portal earlier today.,0
+Please remember that the next quiz is on Friday.,0
+The building is a little noisy this morning.,0
+Let us finish the examples and then take a short break.,0
+The class will meet in the same room tomorrow.,0
+I am glad to see everyone engaged in the discussion.,0
+Please save your work before switching to the next task.,0
+We will continue with the exercises after lunch.,0
+The answer key will be available in the shared folder.,0
+Can the person in the back please close the door?,0
+I have a small correction to the handout before we begin.,0
+Please leave your completed tasks on the table.,0
+The teacher asked everyone to pair up for the activity.,0
+We will wrap up in a few minutes.,0
+I have uploaded the slides to the course page.,0
+Please note the time change for the next meeting.,0
+The office hours have been moved to Thursday this week.,0
+Let us check the attendance sheet before we start.,0
+I am looking forward to seeing everyone at the workshop.,0
+Please bring your notebook to the lab session tomorrow.,0
+Can someone help me find the correct reference?,0
+The group discussion will continue after the break.,0
+The class ended a little earlier than usual today.,0
+I will talk to the lab instructor about the equipment issue.,0
+Please read the instructions once more before beginning.,0
+The schedule for the final project was shared in the email.,0
+I have one more question before we move on.,0
+Thank you for your patience while we organize the materials.,0
+Please leave the room tidy before you go.,0
+We can revisit this point in the next meeting.,0
+Can everyone open the document on the shared screen?,0
+The seminar has been postponed until next Tuesday.,0
+I will pass the worksheet to the front row.,0
+Please stay seated until the class is finished.,0
+It was nice working with everyone on the group task.,0
+Could you turn the volume down a little?,0
+"Your feedback is important, and I appreciate it.",0
+I need a minute to check the final details.,0
+Please keep the discussion focused on the current task.,0
+We can revisit the example after finishing the reading.,0
+The assignment files were uploaded to the course page.,0
+I think we should take another look at the practice questions.,0
+Please remember to bring a pencil to the exam.,0
+The next meeting will begin shortly after the break.,0
+We will review the rubric before submission.,0
+I have placed the extra handouts on the desk.,0
+Please wait for the teacher to begin the demonstration.,0
+Can someone help me carry these books?,0
+The room has been rearranged for the workshop.,0
+I will send the updated schedule by email this evening.,0
+Please make sure you have the required materials with you.,0
+The class discussion will continue after everyone has submitted their notes.,0
+I appreciate the feedback from everyone in the group.,0
+We will start the lab as soon as the setup is ready.,0
+The lecture may run a bit late today.,0
+Please keep an eye on the time during the activity.,0
+I will explain the assignment once more at the end of class.,0
+Can everyone return the shared materials before leaving?,0
+The course website has been updated with the latest files.,0
+Please take a seat while the instructor sets up the projector.,0
+"Good work today, everyone.",0
+I want to thank you for your cooperation and focus.,0
+Please keep the discussion notes in your folder.,0
+The next seminar will be in the computer lab.,0
+Let us conclude with a brief summary of today’s class.,0
+I have a minor correction to the assignment instructions.,0
+The session will continue after a short pause.,0
+Please save the updated document before closing it.,0
+We will start the reading quiz in ten minutes.,0
+Can you email the reference link to the group?,0
+I will be in the classroom after the lecture if anyone needs help.,0
+Please remember to sign in before the workshop begins.,0
+"The hallway is crowded, so we will meet in the next room.",0
+Let us finish this discussion and then move on.,0
+The teacher said the deadline has been extended by one day.,0
+Please check that your name is written correctly on the sheet.,0
+I will leave the handouts on the front table.,0
+The audience is encouraged to ask questions at the end.,0
+I will go through the instructions again before the activity starts.,0

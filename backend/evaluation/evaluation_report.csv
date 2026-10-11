@@ -1,0 +1,18 @@
+Metric,My Model (%),Reported Paper Result (%)
+Accuracy,93.18181818181817,87.0
+Important Precision,90.47619047619048,84.0
+Important Recall,95.0,79.0
+Important F1,92.6829268292683,81.0
+Non-important Precision,90.47619047619048,88.0
+Non-important Recall,95.0,91.0
+Non-important F1,92.6829268292683,89.0
+Macro Precision,93.06418219461699,N/A
+Macro Recall,93.33333333333333,N/A
+Macro F1,93.14997405293201,N/A
+Weighted Precision,93.29945416901938,N/A
+Weighted Recall,93.18181818181817,N/A
+Weighted F1,93.19243289144691,N/A
+Confusion Matrix,"[[22, 2], [1, 19]]",N/A
+ROUGE-1,61.672867186379165,43.5
+ROUGE-2,36.51500835996384,22.1
+ROUGE-L,53.341916857873365,40.2

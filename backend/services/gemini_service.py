@@ -1,18 +1,115 @@
 import logging
 import json
 import time
-import google.generativeai as genai
+from google import genai
+from google.genai import types
+from google.genai import errors as genai_errors
 import google.api_core.exceptions
 
 from backend.config.settings import settings
 from backend.utils.exceptions import APIError
+from backend.utils.helpers import validate_content_for_analysis
+
+DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 
 # Globally tracked verified model to bypass latency of 404 fallbacks on subsequent calls
 _verified_model = None
+DAILY_QUOTA_EXCEEDED_MESSAGE = (
+    "Gemini daily API quota exceeded for this project. Please wait for the quota to reset or upgrade the Gemini API plan."
+)
+TEMPORARY_UNAVAILABLE_MESSAGE = (
+    "Gemini is temporarily unavailable due to high demand. Please try again later."
+)
 
-logging.info(f"[Gemini] Configuring Google Generative AI SDK (Key Configured: {settings.GEMINI_API_KEY is not None})")
-if settings.GEMINI_API_KEY:
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+client = genai.Client(api_key=settings.GEMINI_API_KEY) if settings.GEMINI_API_KEY else None
+logging.info("[Gemini API] Configured model: %s", settings.GEMINI_MODEL or DEFAULT_GEMINI_MODEL)
+
+
+def resolve_gemini_model_name() -> str:
+    configured_model = (settings.GEMINI_MODEL or DEFAULT_GEMINI_MODEL).strip() or DEFAULT_GEMINI_MODEL
+    model_name = configured_model.lower()
+    if model_name in {'gemini-pro', 'gemini-2.5-flash'}:
+        logging.warning("[Gemini] Legacy model '%s' is not supported. Replacing it with '%s'.", configured_model, DEFAULT_GEMINI_MODEL)
+        return DEFAULT_GEMINI_MODEL
+    return configured_model
+
+
+def is_daily_quota_exhaustion_error(exc: Exception) -> bool:
+    if exc is None:
+        return False
+
+    message = str(exc).lower()
+    if "you exceeded your current quota" in message:
+        return True
+    if "generate_content_free_tier_requests" in message:
+        return True
+    if "generaterequestsperdayperm" in message or "generate requests per day per model" in message:
+        return True
+    if "quota" in message and ("429" in message or "resource_exhausted" in message or "free tier" in message):
+        return True
+    if "resource_exhausted" in message and "quota" in message:
+        return True
+    return False
+
+
+def _get_error_status_code(exc: Exception):
+    if exc is None:
+        return None
+    code = getattr(exc, 'code', None)
+    if code is not None:
+        try:
+            return int(code)
+        except (TypeError, ValueError):
+            pass
+    status_code = getattr(exc, 'status_code', None)
+    if status_code is not None:
+        try:
+            return int(status_code)
+        except (TypeError, ValueError):
+            pass
+    message = str(exc).lower()
+    if '503' in message:
+        return 503
+    if '429' in message:
+        return 429
+    if '404' in message:
+        return 404
+    return None
+
+
+def is_transient_503_error(exc: Exception) -> bool:
+    if exc is None:
+        return False
+    if _get_error_status_code(exc) == 503:
+        return True
+    message = str(exc).lower()
+    return '503' in message and ('unavailable' in message or 'temporarily unavailable' in message or 'high demand' in message)
+
+
+def is_model_not_found_error(exc: Exception) -> bool:
+    if exc is None:
+        return False
+    if _get_error_status_code(exc) == 404:
+        return True
+    message = str(exc).lower()
+    return 'not found' in message and 'model' in message
+
+
+def classify_gemini_error(exc: Exception):
+    message = str(exc).lower()
+    if is_daily_quota_exhaustion_error(exc):
+        return 429, DAILY_QUOTA_EXCEEDED_MESSAGE
+    if is_transient_503_error(exc):
+        return 503, TEMPORARY_UNAVAILABLE_MESSAGE
+    if "quota" in message or "resource_exhausted" in message or "rate limit" in message:
+        return 429, "Gemini API quota exceeded. Please wait a few minutes and try again, or upgrade your API plan."
+    if is_model_not_found_error(exc) or "not found" in message or "404" in message or "no longer available" in message:
+        return 502, "Target Gemini model is unavailable or not supported for this API key. Please update GEMINI_MODEL to a supported model."
+    if "api key" in message or "invalid api key" in message or "api_key" in message:
+        return 401, "Invalid Gemini API Key provided. Please check configuration settings."
+    if "safety" in message or "blocked" in message:
+        return 400, "Summarization request was blocked by Gemini safety filters. Please provide more clear, valid content."
+    return 502, TEMPORARY_UNAVAILABLE_MESSAGE if is_transient_503_error(exc) else f"Failed to generate summary with Gemini: {exc}"
 
 
 def verify_gemini_connection() -> bool:
@@ -21,57 +118,155 @@ def verify_gemini_connection() -> bool:
     if not settings.GEMINI_API_KEY:
         logging.error("[Gemini Connection Test] GEMINI_API_KEY is missing from environment/configuration!")
         return False
-        
-    models_to_test = ['gemini-2.5-flash', 'gemini-2.5-flash', 'gemini-pro']
-    
-    logging.info("[Gemini Connection Test] Running startup connectivity check...")
-    for model_name in models_to_test:
-        try:
-            logging.info(f"[Gemini Connection Test] Sending request to {model_name}...")
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content("Respond with OK")
-            logging.info(f"[Gemini Connection Test] SUCCESS! Response from {model_name}: {response.text.strip()}")
-            _verified_model = model_name
-            return True
-        except google.api_core.exceptions.NotFound:
-            logging.warning(f"[Gemini Connection Test] Model {model_name} not found (404). Trying next...")
+
+    model_name = resolve_gemini_model_name()
+    logging.info("[Gemini Connection Test] Running startup connectivity check on configured model: %s", model_name)
+    try:
+        if client is None:
+            raise RuntimeError("Gemini client is not configured.")
+        logging.info(f"[Gemini Connection Test] Sending request to {model_name}...")
+        response = client.models.generate_content(
+            model=model_name,
+            contents="Respond with OK",
+            config=types.GenerateContentConfig(response_mime_type="text/plain"),
+        )
+        response_text = getattr(response, "text", "") or ""
+        logging.info(f"[Gemini Connection Test] SUCCESS! Response from {model_name}: {response_text.strip()}")
+        _verified_model = model_name
+        return True
+    except Exception as e:
+        status_code, user_message = classify_gemini_error(e)
+        logging.error(f"[Gemini Connection Test] FAILURE with model {model_name}. Status {status_code}. {user_message}")
+        return False
+
+
+def _coerce_string_list(value, key_hint: str = 'value'):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        items = value
+    elif isinstance(value, tuple):
+        items = list(value)
+    elif isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    elif isinstance(value, dict):
+        for candidate_key in ('points', 'items', 'summary', 'content', 'key_points', 'main_points', 'details', 'value'):
+            if candidate_key in value:
+                return _coerce_string_list(value[candidate_key], candidate_key)
+        return [json.dumps(value, ensure_ascii=False)]
+    else:
+        text = str(value).strip()
+        return [text] if text else []
+
+    normalized = []
+    for item in items:
+        if isinstance(item, dict):
+            nested = _coerce_string_list(item)
+            normalized.extend(nested)
             continue
-        except google.api_core.exceptions.InvalidArgument as e:
-            if "API key" in str(e) or "API_KEY" in str(e) or "key" in str(e).lower():
-                logging.error(f"[Gemini Connection Test] FAILURE: Invalid API Key. Details: {str(e)}")
-                return False
-            logging.error(f"[Gemini Connection Test] Invalid Argument details: {str(e)}")
-            continue
-        except Exception as e:
-            logging.error(f"[Gemini Connection Test] FAILURE with model {model_name}. Details: {str(e)}")
-            return False
-            
-    logging.error("[Gemini Connection Test] FAILURE: All test models failed or returned NotFound.")
-    return False
+        text = str(item).strip()
+        if text:
+            normalized.append(text)
+    return normalized
+
+
+def _extract_summary_list(payload, seen=None):
+    if not isinstance(payload, dict):
+        return []
+    if seen is None:
+        seen = set()
+    if id(payload) in seen:
+        return []
+    seen.add(id(payload))
+
+    summary_variants = [
+        'summary',
+        'module_summary',
+        'comprehensive_summary',
+        'comprehensive_module_summary',
+        'key_points',
+        'main_points',
+        'overview',
+        'summary_points',
+    ]
+
+    for key in summary_variants:
+        if key in payload:
+            value = payload.get(key)
+            extracted = _coerce_string_list(value, key)
+            if extracted:
+                return extracted
+
+    for nested_key in ('analysis', 'result', 'data', 'report', 'output', 'response', 'content'):
+        if nested_key in payload and isinstance(payload[nested_key], (dict, list)):
+            nested = _extract_summary_list(payload[nested_key], seen)
+            if nested:
+                return nested
+
+    for value in payload.values():
+        if isinstance(value, dict):
+            nested = _extract_summary_list(value, seen)
+            if nested:
+                return nested
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    nested = _extract_summary_list(item, seen)
+                    if nested:
+                        return nested
+
+    return []
 
 
 def parse_gemini_response(response_text: str) -> dict:
     """Parses Gemini response securely with regex extractors and raw text fallback."""
     if not response_text:
         return {'summary': ['Received empty response text.'], 'cognitive_gaps': []}
-        
+
     cleaned = response_text.strip()
-    
+
+    # Handle markdown code fences (```json ... ``` or ``` ... ```)
+    if cleaned.startswith('```'):
+        cleaned = re.sub(r'^```(?:json)?\s*', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'\s*```\s*$', '', cleaned, flags=re.DOTALL)
+
     # Try standard JSON parsing
     try:
-        return json.loads(cleaned)
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            logging.info("[Gemini Response Parser] Parsed Gemini response keys: %s", sorted(parsed.keys()))
+            print("========== GEMINI DEBUG ==========")
+            print("Parsed response type:", type(parsed).__name__)
+            print("Parsed response keys:", list(parsed.keys()))
+            print("Raw summary:", parsed.get("summary"))
+            print("Raw module_summary:", parsed.get("module_summary"))
+            print("Raw comprehensive_summary:", parsed.get("comprehensive_summary"))
+            print("Raw comprehensive_module_summary:", parsed.get("comprehensive_module_summary"))
+            print("Raw key_points:", parsed.get("key_points"))
+            print("Raw main_points:", parsed.get("main_points"))
+            print("Raw overview:", parsed.get("overview"))
+            print("Raw summary_points:", parsed.get("summary_points"))
+            print("Main theme:", parsed.get("main_theme"))
+            print("Major topics:", parsed.get("major_topics"))
+            print("Core insights:", parsed.get("core_insights"))
+            print("=================================")
+            return parsed
     except json.JSONDecodeError:
         pass
-        
+
     # Regex fallback if wrapped in markdown codeblocks
     import re
-    match = re.search(r'```json\s*(.*?)\s*```', cleaned, re.DOTALL)
+    match = re.search(r'```(?:json)?\s*(.*?)\s*```', response_text, re.DOTALL | re.IGNORECASE)
     if match:
         try:
-            return json.loads(match.group(1).strip())
+            parsed = json.loads(match.group(1).strip())
+            if isinstance(parsed, dict):
+                logging.info("[Gemini Response Parser] Parsed fenced Gemini response keys: %s", sorted(parsed.keys()))
+                return parsed
         except json.JSONDecodeError:
             pass
-            
+
     # Return raw text wrap
     logging.warning("[Gemini Response Parser] Fallback triggered. Returning raw text wrapped in structured JSON format.")
     return {
@@ -85,6 +280,13 @@ def normalize_summary_payload(payload: dict, is_fallback: bool = False) -> dict:
     """Ensures that the summary payload conforms strictly to the expected structure and types."""
     if not isinstance(payload, dict):
         payload = {}
+
+    summary = _extract_summary_list(payload)
+
+    if not summary and 'important_observations' in payload:
+        summary = _coerce_string_list(payload.get('important_observations'), 'important_observations')
+
+    summary = [str(item).strip() for item in summary if str(item).strip()]
 
     # 1. Main Theme
     main_theme = str(payload.get('main_theme', '')).strip()
@@ -266,7 +468,8 @@ def normalize_summary_payload(payload: dict, is_fallback: bool = False) -> dict:
     mins = max(1, round(total_words / 200))
     estimated_reading_time = f"{mins} min" if mins == 1 else f"{mins} mins"
 
-    return {
+    normalized_payload = {
+        'summary': summary,
         'main_theme': main_theme,
         'important_observations': normalized_obs,
         'major_topics': normalized_topics,
@@ -284,30 +487,39 @@ def normalize_summary_payload(payload: dict, is_fallback: bool = False) -> dict:
         'knowledge_score': score,
         'estimated_reading_time': estimated_reading_time
     }
+    logging.info("[Gemini Normalization] Normalized response keys: %s", sorted(normalized_payload.keys()))
+    return normalized_payload
 
 
-def generate_summary(content: str) -> dict:
+def generate_summary(content: str, source_type: str = 'text') -> dict:
     if not settings.GEMINI_API_KEY:
         raise APIError('Gemini API key is not configured on the server. Please set GEMINI_API_KEY.', status_code=500)
 
-    if not content or len(content.strip()) < 10:
-        raise APIError('Content too short to summarize (minimum 10 characters)', status_code=400)
-
-    is_fallback = "**FALLBACK_YOUTUBE_METADATA**" in content
+    content = validate_content_for_analysis(content)
+    is_fallback = source_type == 'youtube_metadata' or "SOURCE TYPE:\nYouTube metadata fallback" in content or "**FALLBACK_YOUTUBE_METADATA**" in content
 
     if is_fallback:
         logging.info("[Gemini] [Metadata] [Fallback] YouTube metadata fallback pattern detected. Routing specialized prompt.")
         prompt = f'''
-You are a professional research analyst.
-The transcript for the requested YouTube video was unavailable. However, we have retrieved the video metadata:
+You are analyzing a YouTube video using metadata because the transcript was unavailable or insufficient.
+
+SOURCE TYPE:
+YouTube metadata fallback
+
+Use ONLY the following metadata to infer the likely topic, context, and theme of the video. Do not pretend this is a complete transcript.
+
+Metadata:
 {content}
 
-Please generate a high-level structured intelligence report based ONLY on this metadata (title, channel, description, views, duration).
-Since the full transcript is unavailable, analyze the likely structure, context, and educational concepts from the video attributes.
-Write your analysis in the style of a professional analyst report rather than a traditional summary (like ChatGPT Deep Research reports).
+Summarize the content based on what is actually available in the metadata. If the transcript is unavailable, clearly state that the summary is based on metadata rather than the full spoken content.
 
-Output only a valid JSON object matching the following structure:
+Return JSON only with the required schema. The `summary` field is REQUIRED and must contain 5-10 concise points directly supported by the available metadata.
+
 {{
+  "summary": [
+    "Actual point supported by the metadata",
+    "Another point supported by the metadata"
+  ],
   "main_theme": "🏆 Overarching theme of this video based on the title/description",
   "important_observations": [
     "🔎 Important observation / key detail extracted from the metadata description",
@@ -318,7 +530,7 @@ Output only a valid JSON object matching the following structure:
     "📑 Another likely major topic"
   ],
   "key_statistics": [
-    "📊 Views, duration, or numeric details from the metadata (e.g. view count, video length)",
+    "📊 Views, duration, or numeric details from the metadata",
     "📊 Another key statistic from description"
   ],
   "important_entities": [
@@ -361,152 +573,186 @@ Output only a valid JSON object matching the following structure:
   "knowledge_score": 50,
   "estimated_reading_time": "3 mins"
 }}
+
 Ensure that:
-1. "quiz" contains exactly 5 multiple choice questions.
-2. "difficulty_level" must be one of "Beginner", "Intermediate", or "Advanced".
-3. "knowledge_score" must be an integer between 0 and 100.
-4. Output must be strictly valid JSON matching this schema, with no additional text or formatting outside the JSON block.
+1. The `summary` field contains 5-10 concise points.
+2. `quiz` contains exactly 5 multiple choice questions.
+3. `difficulty_level` must be one of "Beginner", "Intermediate", or "Advanced".
+4. `knowledge_score` must be an integer between 0 and 100.
+5. Output must be strictly valid JSON with no extra text outside the JSON object.
 '''
     else:
         prompt = f'''
-You are a professional research analyst.
-Create a comprehensive structured intelligence report in JSON format using the provided content.
-Generate the analysis in the style of a professional analyst report rather than a traditional summary (like ChatGPT Deep Research reports).
+You are analyzing a YouTube video transcript.
 
-Content:
+Summarize ONLY the information contained in the transcript.
+Do not invent facts.
+Do not analyze the URL.
+Do not produce generic advice.
+Do not say the content is meaningless when a valid transcript is provided.
+
+SOURCE TYPE:
+YouTube transcript
+
+Transcript content:
 {content}
 
-Output only a valid JSON object matching the following structure:
+Generate a structured analysis.
+The `summary` field is REQUIRED and must contain 5-10 concise points directly supported by the transcript.
+
+Return JSON only:
 {{
-  "main_theme": "🏆 The overarching core theme or thesis statement of the content.",
-  "important_observations": [
-    "🔎 Important observation / key takeaway from the content",
-    "🔎 Another important observation / key takeaway"
+  "summary": [
+    "...",
+    "...",
+    "..."
   ],
-  "major_topics": [
-    "📑 Major topic or concept covered in detail",
-    "📑 Another major topic"
-  ],
-  "key_statistics": [
-    "📊 Key statistic, data point, or hard fact (include numbers/metrics)",
-    "📊 Another key statistic or fact"
-  ],
-  "important_entities": [
-    "👤 Key person, organization, company, technology, product, country, or tool and their role/impact",
-    "👤 Another key entity"
-  ],
-  "timeline": [
-    "📅 Event with date/timestamp or sequence",
-    "📅 Another event"
-  ],
-  "turning_points": [
-    "🔄 Critical turning point, decision, or shift in direction",
-    "🔄 Another critical turning point"
-  ],
-  "strengths": [
-    "⚖️ Strength: positive aspect, evidence, or advantage discussed"
-  ],
-  "weaknesses": [
-    "⚖️ Weakness: limitation, criticism, or gap discussed"
-  ],
-  "core_insights": [
-    "🧠 High-level analytical insight or implication of the findings",
-    "🧠 Another core insight"
-  ],
-  "learning_gaps": [
-    {{
-      "concept": "Name of the missing or complex concept that needs further study",
-      "reason": "Detailed explanation of why this concept is important or complex",
-      "youtube_query": "A precise search query to find educational videos on YouTube about this concept"
-    }}
-  ],
-  "quiz": [
-    {{
-      "question": "A multiple choice question testing understanding of the content.",
-      "options": ["A) Option A text", "B) Option B text", "C) Option C text", "D) Option D text"],
-      "correct_answer": "Option A text",
-      "explanation": "Detailed explanation of why the correct option is right and others are wrong."
-    }}
-  ],
-  "final_verdict": "📝 An executive summary verdict concluding the analysis and key recommendations.",
-  "difficulty_level": "Intermediate",
-  "knowledge_score": 85,
-  "estimated_reading_time": "5 mins"
+  "important_observations": [],
+  "major_topics": [],
+  "key_statistics": [],
+  "important_entities": [],
+  "timeline": [],
+  "turning_points": [],
+  "strengths": [],
+  "weaknesses": [],
+  "core_insights": [],
+  "learning_gaps": [],
+  "quiz": [],
+  "main_theme": "",
+  "final_verdict": "",
+  "difficulty_level": "",
+  "estimated_reading_time": "",
+  "knowledge_score": 0
 }}
-Ensure that:
-1. "quiz" contains exactly 5 multiple choice questions.
-2. "difficulty_level" must be one of "Beginner", "Intermediate", or "Advanced".
-3. "knowledge_score" must be an integer between 0 and 100.
-4. Output must be strictly valid JSON matching this schema, with no additional text or formatting outside the JSON block.
+
+Requirements:
+- `summary` must include 5-10 actual points supported by the transcript.
+- Do not return an empty array for `summary`.
+- Do not include the URL or video ID as the summary.
+- Output must be valid JSON only.
 '''
 
     global _verified_model
-    models_to_try = [
-        'gemini-2.5-flash',
-        'gemini-2.5-flash',
-        'gemini-pro'
-    ]
-    if _verified_model and _verified_model in models_to_try:
-        # Prioritize the known working model to avoid redundant 404 retries
-        models_to_try.remove(_verified_model)
-        models_to_try.insert(0, _verified_model)
-    
+    model_name = resolve_gemini_model_name()
+    _verified_model = model_name
+    logging.info("[Gemini API] Actual analysis model: %s", model_name)
+
+    retries = 3
+    backoff = 2
     last_error = None
-    for model_name in models_to_try:
-        model = genai.GenerativeModel(model_name)
-        
-        # Retry loop with exponential backoff
-        retries = 3
-        backoff = 2
-        for attempt in range(retries):
-            try:
-                logging.info(f"[Gemini API] Dispatching request to model {model_name} (Attempt {attempt+1}/{retries})...")
-                response = model.generate_content(
-                    prompt,
-                    generation_config={'response_mime_type': 'application/json'},
-                )
-                
-                if not response:
-                    raise APIError('Empty response object received from Gemini API', status_code=502)
-                    
-                # Handle safety blocks / prompt blocking
-                if hasattr(response, 'prompt_feedback') and response.prompt_feedback.block_reason:
-                    logging.error(f"[Gemini Safety] Prompt blocked. Reason: {response.prompt_feedback.block_reason}")
-                    raise APIError(f"Summarization request was blocked by Gemini safety filters: {response.prompt_feedback.block_reason}", status_code=400)
-                
-                raw_text = response.text
-                if not raw_text:
-                    raise APIError('Gemini returned an empty text payload', status_code=502)
-                    
-                parsed_res = parse_gemini_response(raw_text)
-                return normalize_summary_payload(parsed_res, is_fallback=is_fallback)
-                
-            except google.api_core.exceptions.NotFound as exc:
-                logging.warning(f"[Gemini API] Model {model_name} not found. Skipping to next model.")
+    for attempt in range(retries):
+        try:
+            logging.info(f"[Gemini API] Dispatching request to model {model_name} (Attempt {attempt+1}/{retries})...")
+            if client is None:
+                raise RuntimeError('Gemini client is not configured.')
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type='application/json'),
+            )
+
+            if not response:
+                raise APIError('Empty response object received from Gemini API', status_code=502)
+
+            prompt_feedback = getattr(response, 'prompt_feedback', None)
+            if prompt_feedback and getattr(prompt_feedback, 'block_reason', None):
+                logging.error(f"[Gemini Safety] Prompt blocked. Reason: {prompt_feedback.block_reason}")
+                raise APIError(f"Summarization request was blocked by Gemini safety filters: {prompt_feedback.block_reason}", status_code=400)
+
+            raw_text = getattr(response, 'text', None) or ""
+            if not raw_text:
+                raise APIError('Gemini returned an empty text payload', status_code=502)
+
+            parsed_res = parse_gemini_response(raw_text)
+            logging.info("[Gemini] Parsed response keys: %s", sorted(parsed_res.keys()) if isinstance(parsed_res, dict) else type(parsed_res).__name__)
+            normalized_res = normalize_summary_payload(parsed_res, is_fallback=is_fallback)
+            logging.info("[Gemini API] Returning normalized response keys: %s", sorted(normalized_res.keys()))
+            return normalized_res
+
+        except google.api_core.exceptions.NotFound as exc:
+            logging.warning(f"[Gemini API] Model {model_name} not found. This likely means the configured model is unsupported.")
+            last_error = exc
+            break
+        except genai_errors.ClientError as exc:
+            if getattr(exc, 'code', None) == 404 or is_model_not_found_error(exc):
+                logging.warning(f"[Gemini API] Model {model_name} not found. This likely means the configured model is unsupported.")
                 last_error = exc
-                break # break retry loop, try next model name
-            except google.api_core.exceptions.ResourceExhausted as exc:
-                logging.warning(f"[Gemini API] Quota Limit Exceeded. Backing off for {backoff}s...")
+                break
+            if getattr(exc, 'code', None) == 429 or is_daily_quota_exhaustion_error(exc):
+                logging.warning("[Gemini API] Daily quota exhausted. Stopping retries immediately.")
+                raise APIError(DAILY_QUOTA_EXCEEDED_MESSAGE, status_code=429)
+            if getattr(exc, 'code', None) == 503 or is_transient_503_error(exc):
+                logging.warning("[Gemini API] Temporary 503 UNAVAILABLE.")
+                if attempt < retries - 1:
+                    delay = backoff
+                    logging.warning("[Gemini API] Retrying in %s seconds... (Attempt %s/%s)", delay, attempt + 2, retries)
+                    last_error = exc
+                    time.sleep(delay)
+                    backoff *= 2
+                    continue
                 last_error = exc
-                time.sleep(backoff)
-                backoff *= 2
-            except google.api_core.exceptions.InvalidArgument as exc:
-                if "API key" in str(exc) or "API_KEY" in str(exc) or "key" in str(exc).lower():
-                    logging.error("[Gemini API] Invalid API key error detected.")
-                    raise APIError("Invalid Gemini API Key provided. Please check configuration settings.", status_code=401)
-                raise APIError(f"Invalid request argument: {str(exc)}", status_code=400)
-            except Exception as exc:
-                logging.error(f"[Gemini API] Temporary error: {str(exc)}")
+                break
+            last_error = exc
+            raise APIError(str(exc), status_code=getattr(exc, 'code', 502) or 502)
+        except google.api_core.exceptions.TooManyRequests as exc:
+            if is_daily_quota_exhaustion_error(exc):
+                logging.warning("[Gemini API] Daily quota exhausted. Stopping retries immediately.")
+                raise APIError(DAILY_QUOTA_EXCEEDED_MESSAGE, status_code=429)
+            logging.warning(f"[Gemini API] Too Many Requests. Backing off for {backoff}s...")
+            last_error = exc
+            time.sleep(backoff)
+            backoff *= 2
+        except google.api_core.exceptions.ResourceExhausted as exc:
+            if is_daily_quota_exhaustion_error(exc):
+                logging.warning("[Gemini API] Daily quota exhausted. Stopping retries immediately.")
+                raise APIError(DAILY_QUOTA_EXCEEDED_MESSAGE, status_code=429)
+            logging.warning(f"[Gemini API] Quota Limit Exceeded. Backing off for {backoff}s...")
+            last_error = exc
+            time.sleep(backoff)
+            backoff *= 2
+        except google.api_core.exceptions.InvalidArgument as exc:
+            if "API key" in str(exc) or "API_KEY" in str(exc) or "key" in str(exc).lower():
+                logging.error("[Gemini API] Invalid API key error detected.")
+                raise APIError("Invalid Gemini API Key provided. Please check configuration settings.", status_code=401)
+            raise APIError(f"Invalid request argument: {str(exc)}", status_code=400)
+        except genai_errors.ServerError as exc:
+            if getattr(exc, 'code', None) == 503 or is_transient_503_error(exc):
+                logging.warning("[Gemini API] Temporary 503 UNAVAILABLE.")
+                if attempt < retries - 1:
+                    delay = backoff
+                    logging.warning("[Gemini API] Retrying in %s seconds... (Attempt %s/%s)", delay, attempt + 2, retries)
+                    last_error = exc
+                    time.sleep(delay)
+                    backoff *= 2
+                    continue
                 last_error = exc
-                time.sleep(1)
-                
-    # If all models failed
-    logging.error(f"[Gemini API] All models failed. Last error: {str(last_error)}")
-    error_message = str(last_error) if last_error else "Unknown API failure"
-    
-    if "404" in error_message or "not found" in error_message.lower():
-        raise APIError("Target Gemini models (including gemini-2.5-flash) are unavailable or not supported for this API key.", status_code=502)
-    elif "quota" in error_message.lower() or "exhausted" in error_message.lower():
-        raise APIError("Gemini API quota exceeded. Please wait a few minutes before trying again.", status_code=429)
-        
-    raise APIError(f"Failed to generate summary with Gemini: {error_message}", status_code=502)
+                break
+            last_error = exc
+            raise APIError(TEMPORARY_UNAVAILABLE_MESSAGE if is_transient_503_error(exc) else str(exc), status_code=getattr(exc, 'code', 502) or 502)
+        except Exception as exc:
+            if is_daily_quota_exhaustion_error(exc):
+                logging.warning("[Gemini API] Daily quota exhausted. Stopping retries immediately.")
+                raise APIError(DAILY_QUOTA_EXCEEDED_MESSAGE, status_code=429)
+            if is_model_not_found_error(exc):
+                logging.warning(f"[Gemini API] Model {model_name} not found. This likely means the configured model is unsupported.")
+                last_error = exc
+                break
+            if is_transient_503_error(exc):
+                logging.warning("[Gemini API] Temporary 503 UNAVAILABLE.")
+                if attempt < retries - 1:
+                    delay = backoff
+                    logging.warning("[Gemini API] Retrying in %s seconds... (Attempt %s/%s)", delay, attempt + 2, retries)
+                    last_error = exc
+                    time.sleep(delay)
+                    backoff *= 2
+                    continue
+                last_error = exc
+                break
+            logging.error(f"[Gemini API] Temporary error: {str(exc)}")
+            last_error = exc
+            time.sleep(1)
+
+    logging.error(f"[Gemini API] Final model attempt failed. Last error: {str(last_error)}")
+    status_code, user_message = classify_gemini_error(last_error or Exception('Unknown API failure'))
+    raise APIError(user_message, status_code=status_code)

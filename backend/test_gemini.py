@@ -1,6 +1,6 @@
 import sys
 import os
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # Define function to test connection
@@ -28,7 +28,7 @@ def test_connection():
     print("----------------------------------------")
     print("Gemini Connectivity Diagnostic Test")
     print("----------------------------------------")
-    print(f"SDK version: {genai.__version__}")
+    print(f"SDK version: {getattr(genai, '__version__', 'unknown')}")
     
     if not api_key:
         print("API Key validation: FAILED (GEMINI_API_KEY is missing/empty)")
@@ -38,37 +38,23 @@ def test_connection():
     key_preview = f"{api_key[:4]}...{api_key[-4:]}" if len(api_key) > 8 else "too_short"
     print(f"API Key exists: True (Preview: {key_preview}, Length: {len(api_key)})")
     
-    # 2. Initialize Gemini
-    genai.configure(api_key=api_key)
+    # 2. Initialize Gemini client
+    client = genai.Client(api_key=api_key)
     
-    model_name = "gemini-2.5-flash"
+    model_name = "gemini-3.6-flash"
     print(f"Model used: {model_name}")
     
     try:
-        # 3. Call gemini-2.5-flash with 4. "Respond with OK"
-        model = genai.GenerativeModel(model_name)
-        response = model.generate_content("Respond with OK")
-        
-        # 5. Print results
-        print(f"Response text: {response.text.strip()}")
+        response = client.models.generate_content(
+            model=model_name,
+            contents="Respond with OK",
+        )
+        print(f"Response text: {getattr(response, 'text', '').strip()}")
         print("Success/Failure: SUCCESS")
         return True
     except Exception as e:
         print(f"Response text: N/A")
         print(f"Success/Failure: FAILURE (Error details: {str(e)})")
-        
-        fallback_model_name = "gemini-2.5-flash"
-        print(f"\nAttempting fallback test with model: {fallback_model_name}")
-        try:
-            model = genai.GenerativeModel(fallback_model_name)
-            response = model.generate_content("Respond with OK")
-            print(f"Response text: {response.text.strip()}")
-            print("Success/Failure (Fallback): SUCCESS")
-            return True
-        except Exception as fallback_err:
-            print(f"Response text (Fallback): N/A")
-            print(f"Success/Failure (Fallback): FAILURE (Error details: {str(fallback_err)})")
-            
         return False
 
 if __name__ == "__main__":
