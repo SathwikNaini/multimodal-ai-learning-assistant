@@ -8,7 +8,7 @@ youtube-transcript-api==0.6.1
 PyPDF2>=3.0.1
 python-pptx==0.6.21
 python-docx==0.8.11
-Pillow==10.1.0
+Pillow>=10.4.0,<12
 flask-limiter==3.5.0
 requests==2.31.0
 rouge-score==0.1.2
