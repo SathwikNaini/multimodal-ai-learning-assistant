@@ -32,10 +32,13 @@ class Settings:
     GEMINI_MODEL = (os.getenv('GEMINI_MODEL') or 'gemini-3.6-flash').strip() or 'gemini-3.6-flash'
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024
     ALLOWED_FILE_EXTENSIONS = {'.pdf', '.pptx', '.txt', '.png', '.jpg', '.jpeg', '.webp'}
+    
     CORS_ORIGINS = [
         'http://localhost:3000',
         'http://localhost:5173',
+        'https://multimodal-ai-learning-assistant-pink.vercel.app',
     ]
+
     
     # Track Flask environment/debug flags
     FLASK_ENV = os.getenv('FLASK_ENV', 'production')
